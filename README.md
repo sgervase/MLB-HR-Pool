@@ -26,7 +26,7 @@ In this project, I use:
 
 ## Configuration
 
-All pool settings and draft picks are managed in my `config.json` file. It's designed to be dynamic based on who joins and what players are selected. Below, you can see an example of what an example would look like (if the other participants didn't know ball :)).
+All pool settings and draft picks are managed in my `config.json` file. It's designed to be dynamic based on who joins and what players are selected. Below, you can see an example of what my ideal top 3 picks would look like (if the other participants didn't know ball :)).
 
 ```json
 {
