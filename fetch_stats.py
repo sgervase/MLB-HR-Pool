@@ -125,26 +125,38 @@ def main():
 # ── HTML Generation ───────────────────────────────────────────────────────────
 
 def generate_html(results: list, pool_name: str, season: int, top_n: int, updated: str):
-    """Generate a clean, mobile-friendly standings page."""
+    """Generate a clean card-style standings page."""
 
-    # Build standings rows
-    standings_rows = ""
+    participant_cards = ""
     for rank, team in enumerate(results, 1):
-        medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}")
-        standings_rows += f"""
-        <tr class="standings-row" onclick="toggleDetail('{team['name']}')">
-          <td class="rank">{medal}</td>
-          <td class="owner-name">{team['name']}</td>
-          <td class="total">{team['total']}</td>
-          <td class="expand-icon">▾</td>
-        </tr>
-        <tr class="detail-row" id="detail-{team['name'].replace(' ', '-')}">
-          <td colspan="4">
-            <div class="player-grid">
-              {build_player_cards(team['players'], top_n)}
-            </div>
-          </td>
-        </tr>"""
+        medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"#{rank}")
+        player_rows = ""
+        for p in team["players"]:
+            if not p["found"]:
+                row_class = "not-found"
+            elif p["counts"]:
+                row_class = "counting"
+            else:
+                row_class = "bench"
+            hr_display = "—" if not p["found"] else str(p["hr"])
+            player_rows += (
+                f'<div class="player-row {row_class}">'
+                f'<span class="player-name">{p["name"]}</span>'
+                f'<span class="player-hr">{hr_display}</span>'
+                f'</div>'
+            )
+
+        participant_cards += (
+            f'<div class="ball-card">'
+            f'<div class="card-header">'
+            f'<div class="card-rank">{medal}</div>'
+            f'<div class="card-owner">{team["name"]}</div>'
+            f'<div class="card-total"><span class="total-num">{team["total"]}</span><span class="total-label"> HR</span></div>'
+            f'</div>'
+            f'<div class="card-divider"></div>'
+            f'<div class="player-list">{player_rows}</div>'
+            f'</div>'
+        )
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -158,21 +170,20 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
     body {{
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #0f1923;
-      color: #e8edf2;
+      color: #1a1a1a;
       min-height: 100vh;
-      padding: 20px 16px 40px;
+      padding: 24px 16px 48px;
     }}
 
-    /* ── Header ── */
     .header {{
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 32px;
     }}
     .header h1 {{
-      font-size: clamp(1.4rem, 5vw, 2.2rem);
+      font-size: clamp(1.5rem, 5vw, 2.4rem);
       font-weight: 800;
-      letter-spacing: -0.5px;
       color: #fff;
+      letter-spacing: -0.5px;
     }}
     .header h1 span {{ color: #e8341c; }}
     .season-badge {{
@@ -183,201 +194,104 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
       padding: 4px 14px;
       font-size: 0.8rem;
       color: #8aa0b8;
-      margin-top: 6px;
+      margin-top: 8px;
     }}
     .updated {{
       font-size: 0.75rem;
-      color: #556a80;
+      color: #4a6070;
       margin-top: 8px;
     }}
 
-    /* ── Card wrapper ── */
-    .card {{
-      background: #1a2635;
-      border: 1px solid #243447;
-      border-radius: 12px;
-      overflow: hidden;
-      max-width: 700px;
-      margin: 0 auto 16px;
-    }}
-
-    /* ── Standings table ── */
-    table {{ width: 100%; border-collapse: collapse; }}
-    thead th {{
-      background: #152030;
-      color: #8aa0b8;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 10px 16px;
-      text-align: left;
-    }}
-    thead th.num {{ text-align: right; }}
-
-    .standings-row {{
-      cursor: pointer;
-      transition: background 0.15s;
-      border-top: 1px solid #1e2d3d;
-    }}
-    .standings-row:hover {{ background: #1f3148; }}
-    .standings-row td {{
-      padding: 14px 16px;
-      vertical-align: middle;
-    }}
-    .rank {{ font-size: 1.1rem; width: 44px; }}
-    .owner-name {{ font-weight: 600; font-size: 1rem; }}
-    .total {{
-      text-align: right;
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: #e8341c;
-      width: 70px;
-    }}
-    .expand-icon {{
-      text-align: right;
-      color: #556a80;
-      font-size: 1rem;
-      width: 30px;
-      transition: transform 0.2s;
-    }}
-    .expanded .expand-icon {{ transform: rotate(180deg); }}
-
-    /* ── Detail row ── */
-    .detail-row {{ display: none; background: #111e2b; }}
-    .detail-row td {{ padding: 0; }}
-    .detail-row.open {{ display: table-row; }}
-
-    .player-grid {{
+    .cards-grid {{
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
-      padding: 14px 16px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
     }}
 
-    .player-card {{
-      background: #1a2d42;
-      border-radius: 8px;
-      padding: 10px 12px;
-      position: relative;
-      border: 1px solid transparent;
+    .ball-card {{
+      background: #f5f0e8;
+      border-radius: 16px;
+      border: 3px solid #d4c9b0;
+      padding: 16px 18px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }}
-    .player-card.counts {{
-      border-color: #2a4a6b;
+
+    .card-header {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
     }}
-    .player-card.benched {{
-      opacity: 0.45;
+    .card-rank {{ font-size: 1.4rem; line-height: 1; }}
+    .card-owner {{
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      flex: 1;
     }}
-    .player-card.not-found {{
-      border-color: #5c2a2a;
-      opacity: 0.5;
+    .card-total {{ text-align: right; }}
+    .total-num {{
+      font-size: 2rem;
+      font-weight: 900;
+      color: #c0392b;
+      line-height: 1;
     }}
-    .player-name {{
-      font-size: 0.82rem;
+    .total-label {{
+      font-size: 0.75rem;
+      color: #888;
       font-weight: 600;
-      color: #c8d8e8;
-      margin-bottom: 4px;
-      line-height: 1.25;
+    }}
+
+    .card-divider {{
+      height: 2px;
+      background: repeating-linear-gradient(90deg, #c0392b 0px, #c0392b 6px, transparent 6px, transparent 10px);
+      margin-bottom: 10px;
+      border-radius: 2px;
+    }}
+
+    .player-row {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid #e0d8c8;
+      gap: 8px;
+    }}
+    .player-row:last-child {{ border-bottom: none; }}
+    .player-row.bench {{ opacity: 0.4; }}
+    .player-row.not-found {{ opacity: 0.35; }}
+
+    .player-name {{
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #2a2a2a;
+      flex: 1;
     }}
     .player-hr {{
-      font-size: 1.3rem;
+      font-size: 1.1rem;
       font-weight: 800;
-      color: #fff;
-    }}
-    .player-hr span {{ font-size: 0.7rem; color: #556a80; font-weight: 400; }}
-    .counts-badge {{
-      font-size: 0.65rem;
-      color: #4a9eff;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-top: 2px;
-    }}
-    .benched-badge {{
-      font-size: 0.65rem;
-      color: #556a80;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-top: 2px;
-    }}
-
-    /* ── Hint ── */
-    .hint {{
-      text-align: center;
-      font-size: 0.75rem;
-      color: #3a5068;
-      margin-top: 6px;
+      color: #1a1a1a;
+      min-width: 28px;
+      text-align: right;
     }}
   </style>
 </head>
 <body>
   <div class="header">
     <h1>⚾ {pool_name.replace('Home Run', '<span>Home Run</span>')}</h1>
-    <div class="season-badge">{season} Season · Top {top_n} of 6 count</div>
+    <div class="season-badge">{season} Season &nbsp;·&nbsp; Top {top_n} of 6 count</div>
     <div class="updated">Updated {updated}</div>
   </div>
-
-  <div class="card">
-    <table>
-      <thead>
-        <tr>
-          <th colspan="2">Owner</th>
-          <th class="num">HRs</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {standings_rows}
-      </tbody>
-    </table>
+  <div class="cards-grid">
+    {participant_cards}
   </div>
-
-  <p class="hint">Tap any row to see player breakdown</p>
-
-  <script>
-    function toggleDetail(name) {{
-      const safeId = name.replace(/ /g, '-');
-      const detailRow = document.getElementById('detail-' + safeId);
-      const standingsRows = document.querySelectorAll('.standings-row');
-      // Find the standings row for this owner
-      standingsRows.forEach(row => {{
-        if (row.querySelector('.owner-name') && row.querySelector('.owner-name').textContent === name) {{
-          row.classList.toggle('expanded');
-        }}
-      }});
-      detailRow.classList.toggle('open');
-    }}
-  </script>
 </body>
 </html>"""
 
     with open(OUTPUT_FILE, "w") as f:
         f.write(html)
-
-
-def build_player_cards(players: list, top_n: int) -> str:
-    cards = ""
-    for p in players:
-        if not p["found"]:
-            cards += f"""
-            <div class="player-card not-found">
-              <div class="player-name">{p['name']}</div>
-              <div class="player-hr">—</div>
-              <div class="benched-badge">Not found</div>
-            </div>"""
-        elif p["counts"]:
-            cards += f"""
-            <div class="player-card counts">
-              <div class="player-name">{p['name']}</div>
-              <div class="player-hr">{p['hr']} <span>HR</span></div>
-              <div class="counts-badge">✦ Counting</div>
-            </div>"""
-        else:
-            cards += f"""
-            <div class="player-card benched">
-              <div class="player-name">{p['name']}</div>
-              <div class="player-hr">{p['hr']} <span>HR</span></div>
-              <div class="benched-badge">Bench</div>
-            </div>"""
-    return cards
 
 
 if __name__ == "__main__":
