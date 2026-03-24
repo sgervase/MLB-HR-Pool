@@ -2,11 +2,9 @@
 
 This is a fully automated standings tracker for a personal MLB home run pool. Each participant drafts 6 players at the start of the season, and their top 4 home run totals count toward their score. Nothing more to it. At the end of the season, the participant with the highest home run total from their top 4 players wins.
 
-## How It Works
+A Python script pulls current home run totals from the MLB Stats API for every drafted player, calculates each participant's score, and generates a standings page that gets published automatically via GitHub Pages. It refreshes twice daily, once at 4am and another time at 11am.
 
-A Python script pulls current home run totals from the MLB Stats API for every drafted player, calculates each participant's score, and generates a standings page that gets published automatically via GitHub Pages. It runs on a schedule twice a day using GitHub Actions, so there's nothing to manually update during the season.
-
-## Tech Stack
+In this project, I use:
 
 - **Python** — data fetching and HTML generation
 - **MLB Stats API** — free and public, no authentication required
@@ -28,7 +26,7 @@ A Python script pulls current home run totals from the MLB Stats API for every d
 
 ## Configuration
 
-All pool settings and draft picks are managed in `config.json`. To update picks after the draft, just edit the file directly on GitHub and commit. The next scheduled run will pick up the changes.
+All pool settings and draft picks are managed in `config.json`.
 
 ```json
 {
@@ -45,6 +43,6 @@ All pool settings and draft picks are managed in `config.json`. To update picks 
 }
 ```
 
-## Live Site
+## View the live site below!
 
 https://sgervase.github.io/MLB-HR-Pool
