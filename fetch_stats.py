@@ -117,7 +117,9 @@ def main():
     # Sort standings: highest total first, alphabetical tiebreak
     results.sort(key=lambda x: (-x["total"], x["name"]))
 
-    updated = datetime.now(timezone.utc).strftime("%-I:%M %p UTC on %B %-d, %Y")
+    from datetime import timedelta
+    edt = timezone(timedelta(hours=-4))
+    updated = datetime.now(edt).strftime("%-I:%M %p EDT on %B %-d, %Y")
     generate_html(results, pool_name, season, top_n, updated)
     print(f"\n Done! Standings updated at {updated}")
 
