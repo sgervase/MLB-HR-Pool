@@ -1,71 +1,60 @@
-# ⚾ Home Run Pool
+# MLB Home Run Pool Tracker
 
-Automated MLB home run pool tracker. Standings are pulled live from the MLB Stats API and published to GitHub Pages every 2 hours during the season.
+A lightweight, fully automated standings tracker for MLB home run pools. Each participant drafts 6 players at the start of the season, and their top 4 home run totals count toward their score. Standings update automatically twice a day throughout the season.
 
----
+## How It Works
 
-## Setup (one-time, ~30 minutes)
+A Python script queries the [MLB Stats API](https://statsapi.mlb.com) to fetch current home run totals for every drafted player. It calculates each participant's score (sum of their top 4 players), sorts the standings, and generates a static HTML page published via GitHub Pages. The whole process runs on a schedule using GitHub Actions — no server required.
 
-### 1. Create the GitHub repository
+## Features
 
-1. Go to [github.com](https://github.com) and sign in
-2. Click **+** → **New repository**
-3. Name it `hr-pool` (or anything you like)
-4. Set it to **Public** *(required for free GitHub Pages)*
-5. Click **Create repository**
+- Live standings updated twice daily from the MLB Stats API
+- Per-participant cards showing all 6 players with bench players dimmed
+- Mobile-friendly layout
+- Manual refresh trigger available via GitHub Actions
+- Entirely free to host and run
 
-### 2. Upload these files
+## Tech Stack
 
-You can do this entirely in the browser — no coding tools needed.
+- **Python** — data fetching and HTML generation
+- **MLB Stats API** — free, public, no authentication required
+- **GitHub Actions** — scheduled automation (runs at 4am and 11am UTC daily)
+- **GitHub Pages** — static site hosting
 
-In your new repo, click **Add file → Upload files** and upload everything in this folder:
-- `config.json`
-- `fetch_stats.py`
-- `requirements.txt`
-- `README.md`
+## Project Structure
 
-Then for the workflow file, you need to create the folder path manually:
-1. Click **Add file → Create new file**
-2. In the filename box, type: `.github/workflows/update.yml`
-3. Paste in the contents of `update.yml` from this folder
-4. Click **Commit new file**
+```
+├── config.json              # Pool settings and participant draft picks
+├── fetch_stats.py           # Main script: fetches stats and builds the page
+├── requirements.txt         # Python dependencies
+├── index.html               # Auto-generated standings page (do not edit manually)
+├── player_id_cache.json     # Cached MLB player IDs to speed up API lookups
+└── .github/
+    └── workflows/
+        └── update.yml       # GitHub Actions workflow definition
+```
 
-### 3. Enable GitHub Pages
+## Configuration
 
-1. In your repo, go to **Settings → Pages**
-2. Under **Source**, select **Deploy from a branch**
-3. Set branch to `main`, folder to `/ (root)`
-4. Click **Save**
+All pool settings live in `config.json`:
 
-Your site will be live at: `https://YOUR-USERNAME.github.io/hr-pool`
+```json
+{
+  "pool_name": "2026 Home Run Pool",
+  "season": 2026,
+  "players_per_team": 6,
+  "top_n_count": 4,
+  "participants": [
+    {
+      "name": "Alice",
+      "players": ["Aaron Judge", "Shohei Ohtani", "..."]
+    }
+  ]
+}
+```
 
-### 4. Fill in the draft picks
+To update draft picks, edit `config.json` directly on GitHub and commit. The next scheduled run will pick up the changes automatically.
 
-After your draft, edit `config.json` directly on GitHub (click the file → pencil icon) and replace the placeholder names with your actual participants and their drafted players.
+## Live Site
 
-> **Tip:** Use full names as they appear on MLB.com (e.g. `"Rafael Devers"` not `"Devers"`). The script will find them automatically.
-
-### 5. Run it for the first time
-
-Go to **Actions → Update HR Pool Standings → Run workflow** to kick off the first run manually. After that, it runs automatically every 2 hours.
-
----
-
-## Troubleshooting a player not found
-
-If a player shows as "Not found", it usually means the name didn't match exactly. To fix it:
-
-1. Look up the player's MLB ID at `https://statsapi.mlb.com/api/v1/people/search?names=FIRSTNAME+LASTNAME`
-2. Add them directly to `player_id_cache.json` in this format:
-   ```json
-   "Nickname Name": {"id": 123456, "full_name": "Official Full Name"}
-   ```
-
----
-
-## Manual refresh for friends
-
-Anyone can trigger a standings refresh by going to:
-`https://github.com/YOUR-USERNAME/hr-pool/actions` → **Update HR Pool Standings** → **Run workflow**
-
-No account needed to *view* the standings page — just share the GitHub Pages link.
+Standings are published at: https://sgervase.github.io/MLB-HR-Pool
