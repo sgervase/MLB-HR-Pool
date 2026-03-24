@@ -33,7 +33,7 @@ def search_player_id(name: str) -> tuple[int | None, str | None]:
         p = people[0]
         return p["id"], p["fullName"]
     except Exception as e:
-        print(f"  ❌ Error searching for '{name}': {e}")
+        print(f"  Error searching for '{name}': {e}")
         return None, None
 
 
@@ -48,7 +48,7 @@ def get_season_hr(player_id: int, season: int) -> int:
             return 0
         return int(stats[0]["splits"][0]["stat"].get("homeRuns", 0))
     except Exception as e:
-        print(f"  ❌ Error fetching stats for player ID {player_id}: {e}")
+        print(f"  Error fetching stats for player ID {player_id}: {e}")
         return 0
 
 # ── Cache Helpers ─────────────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ def main():
     results = []
 
     for participant in participants:
-        print(f"\n📋 Processing {participant['name']}...")
+        print(f"\n Processing {participant['name']}...")
         player_stats = []
 
         for raw_name in participant["players"]:
@@ -94,7 +94,7 @@ def main():
 
             if player_id:
                 hrs = get_season_hr(player_id, season)
-                print(f"  ✅ {full_name}: {hrs} HR")
+                print(f"  {full_name}: {hrs} HR")
                 player_stats.append({"name": full_name, "hr": hrs, "found": True})
             else:
                 player_stats.append({"name": raw_name, "hr": 0, "found": False})
@@ -119,7 +119,7 @@ def main():
 
     updated = datetime.now(timezone.utc).strftime("%-I:%M %p UTC on %B %-d, %Y")
     generate_html(results, pool_name, season, top_n, updated)
-    print(f"\n✅ Done! Standings updated at {updated}")
+    print(f"\n Done! Standings updated at {updated}")
 
 
 # ── HTML Generation ───────────────────────────────────────────────────────────
