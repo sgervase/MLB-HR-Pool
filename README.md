@@ -26,7 +26,7 @@ In this project, I use:
 
 ## Configuration
 
-All pool settings and draft picks are managed in `config.json`.
+All pool settings and draft picks are managed in my `config.json` file. It's designed to be dynamic based on who joins and what players are selected.
 
 ```json
 {
