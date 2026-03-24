@@ -1,0 +1,50 @@
+{
+  "Aaron Judge": {
+    "id": 592450,
+    "full_name": "Aaron Judge"
+  },
+  "Shohei Ohtani": {
+    "id": 660271,
+    "full_name": "Shohei Ohtani"
+  },
+  "Kyle Schwarber": {
+    "id": 656941,
+    "full_name": "Kyle Schwarber"
+  },
+  "Pete Alonso": {
+    "id": 624413,
+    "full_name": "Pete Alonso"
+  },
+  "Fernando Tatis Jr.": {
+    "id": 665487,
+    "full_name": "Fernando Tatis Jr."
+  },
+  "Yordan Alvarez": {
+    "id": 670541,
+    "full_name": "Yordan Alvarez"
+  },
+  "Mookie Betts": {
+    "id": 605141,
+    "full_name": "Mookie Betts"
+  },
+  "Matt Olson": {
+    "id": 621566,
+    "full_name": "Matt Olson"
+  },
+  "Julio Rodriguez": {
+    "id": 677594,
+    "full_name": "Julio Rodr\u00edguez"
+  },
+  "Rafael Devers": {
+    "id": 646240,
+    "full_name": "Rafael Devers"
+  },
+  "Adolis Garcia": {
+    "id": 666969,
+    "full_name": "Adolis Garc\u00eda"
+  },
+  "Austin Riley": {
+    "id": 663586,
+    "full_name": "Austin Riley"
+  }
+}
