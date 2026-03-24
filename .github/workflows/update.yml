@@ -3,7 +3,7 @@ name: Update HR Pool Standings
 on:
   # Runs every 2 hours between 11am–1am UTC (covers full MLB game day)
   schedule:
-    - cron: "0 4,11 * * *"
+    - cron: "0 8,15 * * *"
   # Also lets anyone trigger a manual refresh from the Actions tab
   workflow_dispatch:
 
