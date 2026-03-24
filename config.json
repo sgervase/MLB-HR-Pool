@@ -1,0 +1,41 @@
+{
+  "pool_name": "2025 Home Run Pool",
+  "season": 2025,
+  "players_per_team": 6,
+  "top_n_count": 4,
+  "participants": [
+    {
+      "name": "Alice",
+      "players": [
+        "Aaron Judge",
+        "Shohei Ohtani",
+        "Kyle Schwarber",
+        "Pete Alonso",
+        "Fernando Tatis Jr.",
+        "Yordan Alvarez"
+      ]
+    },
+    {
+      "name": "Bob",
+      "players": [
+        "Mookie Betts",
+        "Matt Olson",
+        "Julio Rodriguez",
+        "Rafael Devers",
+        "Adolis Garcia",
+        "Austin Riley"
+      ]
+    },
+    {
+      "name": "You",
+      "players": [
+        "Player Name 1",
+        "Player Name 2",
+        "Player Name 3",
+        "Player Name 4",
+        "Player Name 5",
+        "Player Name 6"
+      ]
+    }
+  ]
+}
