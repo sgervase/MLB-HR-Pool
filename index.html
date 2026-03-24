@@ -15,6 +15,7 @@
       padding: 24px 16px 48px;
     }
 
+    /* ── Header ── */
     .header {
       text-align: center;
       margin-bottom: 32px;
@@ -42,36 +43,61 @@
       margin-top: 8px;
     }
 
+    /* ── Card grid ── */
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 20px;
       max-width: 1100px;
       margin: 0 auto;
     }
 
+    /* ── Baseball card ── */
     .ball-card {
       background: #f5f0e8;
       border-radius: 16px;
       border: 3px solid #d4c9b0;
-      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
 
+    /* Full-card seam SVG overlay */
+    .seam-svg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    /* Main content area, inset from the seams */
+    .ball-content {
+      position: relative;
+      margin: 0 72px;
+      padding: 16px 4px;
+    }
+
+    /* ── Card header ── */
     .card-header {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 10px;
     }
-    .card-rank { font-size: 1.4rem; line-height: 1; }
+    .card-rank {
+      font-size: 1.4rem;
+      line-height: 1;
+    }
     .card-owner {
       font-size: 1.1rem;
       font-weight: 800;
       color: #1a1a1a;
       flex: 1;
+      letter-spacing: -0.3px;
     }
-    .card-total { text-align: right; }
+    .card-total {
+      text-align: right;
+    }
     .total-num {
       font-size: 2rem;
       font-weight: 900;
@@ -91,6 +117,7 @@
       border-radius: 2px;
     }
 
+    /* ── Player rows ── */
     .player-row {
       display: flex;
       align-items: center;
@@ -100,6 +127,7 @@
       gap: 8px;
     }
     .player-row:last-child { border-bottom: none; }
+
     .player-row.bench { opacity: 0.4; }
     .player-row.not-found { opacity: 0.35; }
 
@@ -115,6 +143,7 @@
       color: #1a1a1a;
       min-width: 28px;
       text-align: right;
+      flex-shrink: 0;
     }
   </style>
 </head>
@@ -122,10 +151,11 @@
   <div class="header">
     <h1>⚾ 2025 <span>Home Run</span> Pool</h1>
     <div class="season-badge">2025 Season &nbsp;·&nbsp; Top 4 of 6 count</div>
-    <div class="updated">Updated 12:48 AM UTC on March 24, 2026</div>
+    <div class="updated">Updated 12:51 AM UTC on March 24, 2026</div>
   </div>
+
   <div class="cards-grid">
-    <div class="ball-card"><div class="card-header"><div class="card-rank">🥇</div><div class="card-owner">Alice</div><div class="card-total"><span class="total-num">202</span><span class="total-label"> HR</span></div></div><div class="card-divider"></div><div class="player-list"><div class="player-row counting"><span class="player-name">Kyle Schwarber</span><span class="player-hr">56</span></div><div class="player-row counting"><span class="player-name">Shohei Ohtani</span><span class="player-hr">55</span></div><div class="player-row counting"><span class="player-name">Aaron Judge</span><span class="player-hr">53</span></div><div class="player-row counting"><span class="player-name">Pete Alonso</span><span class="player-hr">38</span></div><div class="player-row bench"><span class="player-name">Fernando Tatis Jr.</span><span class="player-hr">25</span></div><div class="player-row bench"><span class="player-name">Yordan Alvarez</span><span class="player-hr">6</span></div></div></div><div class="ball-card"><div class="card-header"><div class="card-rank">🥈</div><div class="card-owner">Bob</div><div class="card-total"><span class="total-num">116</span><span class="total-label"> HR</span></div></div><div class="card-divider"></div><div class="player-list"><div class="player-row counting"><span class="player-name">Rafael Devers</span><span class="player-hr">35</span></div><div class="player-row counting"><span class="player-name">Julio Rodríguez</span><span class="player-hr">32</span></div><div class="player-row counting"><span class="player-name">Matt Olson</span><span class="player-hr">29</span></div><div class="player-row counting"><span class="player-name">Mookie Betts</span><span class="player-hr">20</span></div><div class="player-row bench"><span class="player-name">Adolis García</span><span class="player-hr">19</span></div><div class="player-row bench"><span class="player-name">Austin Riley</span><span class="player-hr">16</span></div></div></div><div class="ball-card"><div class="card-header"><div class="card-rank">🥉</div><div class="card-owner">You</div><div class="card-total"><span class="total-num">0</span><span class="total-label"> HR</span></div></div><div class="card-divider"></div><div class="player-list"><div class="player-row not-found"><span class="player-name">Player Name 1</span><span class="player-hr">—</span></div><div class="player-row not-found"><span class="player-name">Player Name 2</span><span class="player-hr">—</span></div><div class="player-row not-found"><span class="player-name">Player Name 3</span><span class="player-hr">—</span></div><div class="player-row not-found"><span class="player-name">Player Name 4</span><span class="player-hr">—</span></div><div class="player-row not-found"><span class="player-name">Player Name 5</span><span class="player-hr">—</span></div><div class="player-row not-found"><span class="player-name">Player Name 6</span><span class="player-hr">—</span></div></div></div>
+    <div class="ball-card"><svg class="seam-svg" viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M 55,0 C 55,65 20,100 20,130 C 20,160 55,195 55,260" stroke="#c0392b" stroke-width="2.2" fill="none" stroke-linecap="round"/><line x1="48" y1="22"  x2="63" y2="18"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="38" y1="45"  x2="53" y2="44"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="28" y1="70"  x2="43" y2="72"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="21" y1="98"  x2="36" y2="100" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="21" y1="125" x2="36" y2="127" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="28" y1="152" x2="43" y2="150" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="38" y1="178" x2="53" y2="179" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="48" y1="204" x2="63" y2="206" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="52" y1="232" x2="67" y2="236" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><path d="M 345,0 C 345,65 380,100 380,130 C 380,160 345,195 345,260" stroke="#c0392b" stroke-width="2.2" fill="none" stroke-linecap="round"/><line x1="352" y1="22"  x2="337" y2="18"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="362" y1="45"  x2="347" y2="44"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="372" y1="70"  x2="357" y2="72"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="379" y1="98"  x2="364" y2="100" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="379" y1="125" x2="364" y2="127" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="372" y1="152" x2="357" y2="150" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="362" y1="178" x2="347" y2="179" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="352" y1="204" x2="337" y2="206" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="348" y1="232" x2="333" y2="236" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/></svg><div class="ball-content"><div class="card-header"><div class="card-rank">🥇</div><div class="card-owner">Alice</div><div class="card-total"><span class="total-num">202</span><span class="total-label"> HR</span></div></div><div class="card-divider"></div><div class="player-list"><div class="player-row counting"><span class="player-name">Kyle Schwarber</span><span class="player-hr">56</span></div><div class="player-row counting"><span class="player-name">Shohei Ohtani</span><span class="player-hr">55</span></div><div class="player-row counting"><span class="player-name">Aaron Judge</span><span class="player-hr">53</span></div><div class="player-row counting"><span class="player-name">Pete Alonso</span><span class="player-hr">38</span></div><div class="player-row bench"><span class="player-name">Fernando Tatis Jr.</span><span class="player-hr">25</span></div><div class="player-row bench"><span class="player-name">Yordan Alvarez</span><span class="player-hr">6</span></div></div></div></div><div class="ball-card"><svg class="seam-svg" viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M 55,0 C 55,65 20,100 20,130 C 20,160 55,195 55,260" stroke="#c0392b" stroke-width="2.2" fill="none" stroke-linecap="round"/><line x1="48" y1="22"  x2="63" y2="18"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="38" y1="45"  x2="53" y2="44"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="28" y1="70"  x2="43" y2="72"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="21" y1="98"  x2="36" y2="100" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="21" y1="125" x2="36" y2="127" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="28" y1="152" x2="43" y2="150" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="38" y1="178" x2="53" y2="179" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="48" y1="204" x2="63" y2="206" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="52" y1="232" x2="67" y2="236" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><path d="M 345,0 C 345,65 380,100 380,130 C 380,160 345,195 345,260" stroke="#c0392b" stroke-width="2.2" fill="none" stroke-linecap="round"/><line x1="352" y1="22"  x2="337" y2="18"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="362" y1="45"  x2="347" y2="44"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="372" y1="70"  x2="357" y2="72"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="379" y1="98"  x2="364" y2="100" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="379" y1="125" x2="364" y2="127" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="372" y1="152" x2="357" y2="150" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="362" y1="178" x2="347" y2="179" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="352" y1="204" x2="337" y2="206" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="348" y1="232" x2="333" y2="236" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/></svg><div class="ball-content"><div class="card-header"><div class="card-rank">🥈</div><div class="card-owner">Bob</div><div class="card-total"><span class="total-num">116</span><span class="total-label"> HR</span></div></div><div class="card-divider"></div><div class="player-list"><div class="player-row counting"><span class="player-name">Rafael Devers</span><span class="player-hr">35</span></div><div class="player-row counting"><span class="player-name">Julio Rodríguez</span><span class="player-hr">32</span></div><div class="player-row counting"><span class="player-name">Matt Olson</span><span class="player-hr">29</span></div><div class="player-row counting"><span class="player-name">Mookie Betts</span><span class="player-hr">20</span></div><div class="player-row bench"><span class="player-name">Adolis García</span><span class="player-hr">19</span></div><div class="player-row bench"><span class="player-name">Austin Riley</span><span class="player-hr">16</span></div></div></div></div><div class="ball-card"><svg class="seam-svg" viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M 55,0 C 55,65 20,100 20,130 C 20,160 55,195 55,260" stroke="#c0392b" stroke-width="2.2" fill="none" stroke-linecap="round"/><line x1="48" y1="22"  x2="63" y2="18"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="38" y1="45"  x2="53" y2="44"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="28" y1="70"  x2="43" y2="72"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="21" y1="98"  x2="36" y2="100" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="21" y1="125" x2="36" y2="127" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="28" y1="152" x2="43" y2="150" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="38" y1="178" x2="53" y2="179" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="48" y1="204" x2="63" y2="206" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="52" y1="232" x2="67" y2="236" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><path d="M 345,0 C 345,65 380,100 380,130 C 380,160 345,195 345,260" stroke="#c0392b" stroke-width="2.2" fill="none" stroke-linecap="round"/><line x1="352" y1="22"  x2="337" y2="18"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="362" y1="45"  x2="347" y2="44"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="372" y1="70"  x2="357" y2="72"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="379" y1="98"  x2="364" y2="100" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="379" y1="125" x2="364" y2="127" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="372" y1="152" x2="357" y2="150" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="362" y1="178" x2="347" y2="179" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="352" y1="204" x2="337" y2="206" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><line x1="348" y1="232" x2="333" y2="236" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/></svg><div class="ball-content"><div class="card-header"><div class="card-rank">🥉</div><div class="card-owner">You</div><div class="card-total"><span class="total-num">0</span><span class="total-label"> HR</span></div></div><div class="card-divider"></div><div class="player-list"><div class="player-row not-found"><span class="player-name">Player Name 1</span><span class="player-hr">—</span></div><div class="player-row not-found"><span class="player-name">Player Name 2</span><span class="player-hr">—</span></div><div class="player-row not-found"><span class="player-name">Player Name 3</span><span class="player-hr">—</span></div><div class="player-row not-found"><span class="player-name">Player Name 4</span><span class="player-hr">—</span></div><div class="player-row not-found"><span class="player-name">Player Name 5</span><span class="player-hr">—</span></div><div class="player-row not-found"><span class="player-name">Player Name 6</span><span class="player-hr">—</span></div></div></div></div>
   </div>
 </body>
 </html>
