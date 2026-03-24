@@ -125,34 +125,7 @@ def main():
 # ── HTML Generation ───────────────────────────────────────────────────────────
 
 def generate_html(results: list, pool_name: str, season: int, top_n: int, updated: str):
-    """Generate a baseball-card style standings page."""
-
-    seam_svg = (
-        '<svg class="seam-svg" viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">'
-        # Left S-curve seam
-        '<path d="M 55,0 C 55,65 20,100 20,130 C 20,160 55,195 55,260" stroke="#c0392b" stroke-width="2.2" fill="none" stroke-linecap="round"/>'
-        '<line x1="48" y1="22"  x2="63" y2="18"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="38" y1="45"  x2="53" y2="44"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="28" y1="70"  x2="43" y2="72"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="21" y1="98"  x2="36" y2="100" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="21" y1="125" x2="36" y2="127" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="28" y1="152" x2="43" y2="150" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="38" y1="178" x2="53" y2="179" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="48" y1="204" x2="63" y2="206" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="52" y1="232" x2="67" y2="236" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        # Right S-curve seam (mirror)
-        '<path d="M 345,0 C 345,65 380,100 380,130 C 380,160 345,195 345,260" stroke="#c0392b" stroke-width="2.2" fill="none" stroke-linecap="round"/>'
-        '<line x1="352" y1="22"  x2="337" y2="18"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="362" y1="45"  x2="347" y2="44"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="372" y1="70"  x2="357" y2="72"  stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="379" y1="98"  x2="364" y2="100" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="379" y1="125" x2="364" y2="127" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="372" y1="152" x2="357" y2="150" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="362" y1="178" x2="347" y2="179" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="352" y1="204" x2="337" y2="206" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '<line x1="348" y1="232" x2="333" y2="236" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/>'
-        '</svg>'
-    )
+    """Generate a clean card-style standings page."""
 
     participant_cards = ""
     for rank, team in enumerate(results, 1):
@@ -165,7 +138,6 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
                 row_class = "counting"
             else:
                 row_class = "bench"
-
             hr_display = "—" if not p["found"] else str(p["hr"])
             player_rows += (
                 f'<div class="player-row {row_class}">'
@@ -176,8 +148,6 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
 
         participant_cards += (
             f'<div class="ball-card">'
-            f'{seam_svg}'
-            f'<div class="ball-content">'
             f'<div class="card-header">'
             f'<div class="card-rank">{medal}</div>'
             f'<div class="card-owner">{team["name"]}</div>'
@@ -185,7 +155,6 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
             f'</div>'
             f'<div class="card-divider"></div>'
             f'<div class="player-list">{player_rows}</div>'
-            f'</div>'
             f'</div>'
         )
 
@@ -206,7 +175,6 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
       padding: 24px 16px 48px;
     }}
 
-    /* ── Header ── */
     .header {{
       text-align: center;
       margin-bottom: 32px;
@@ -234,61 +202,36 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
       margin-top: 8px;
     }}
 
-    /* ── Card grid ── */
     .cards-grid {{
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 20px;
       max-width: 1100px;
       margin: 0 auto;
     }}
 
-    /* ── Baseball card ── */
     .ball-card {{
       background: #f5f0e8;
       border-radius: 16px;
       border: 3px solid #d4c9b0;
-      position: relative;
-      overflow: hidden;
+      padding: 16px 18px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }}
 
-    /* Full-card seam SVG overlay */
-    .seam-svg {{
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-    }}
-
-    /* Main content area, inset from the seams */
-    .ball-content {{
-      position: relative;
-      margin: 0 72px;
-      padding: 16px 4px;
-    }}
-
-    /* ── Card header ── */
     .card-header {{
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 10px;
     }}
-    .card-rank {{
-      font-size: 1.4rem;
-      line-height: 1;
-    }}
+    .card-rank {{ font-size: 1.4rem; line-height: 1; }}
     .card-owner {{
       font-size: 1.1rem;
       font-weight: 800;
       color: #1a1a1a;
       flex: 1;
-      letter-spacing: -0.3px;
     }}
-    .card-total {{
-      text-align: right;
-    }}
+    .card-total {{ text-align: right; }}
     .total-num {{
       font-size: 2rem;
       font-weight: 900;
@@ -308,7 +251,6 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
       border-radius: 2px;
     }}
 
-    /* ── Player rows ── */
     .player-row {{
       display: flex;
       align-items: center;
@@ -318,7 +260,6 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
       gap: 8px;
     }}
     .player-row:last-child {{ border-bottom: none; }}
-
     .player-row.bench {{ opacity: 0.4; }}
     .player-row.not-found {{ opacity: 0.35; }}
 
@@ -334,7 +275,6 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
       color: #1a1a1a;
       min-width: 28px;
       text-align: right;
-      flex-shrink: 0;
     }}
   </style>
 </head>
@@ -344,7 +284,6 @@ def generate_html(results: list, pool_name: str, season: int, top_n: int, update
     <div class="season-badge">{season} Season &nbsp;·&nbsp; Top {top_n} of 6 count</div>
     <div class="updated">Updated {updated}</div>
   </div>
-
   <div class="cards-grid">
     {participant_cards}
   </div>
