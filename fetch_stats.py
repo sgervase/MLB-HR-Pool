@@ -27,7 +27,7 @@ def search_player_id(name: str) -> tuple[int | None, str | None]:
         r.raise_for_status()
         people = r.json().get("people", [])
         if not people:
-            print(f"  ⚠️  Could not find player: '{name}'")
+            print(f"  Could not find player: '{name}'")
             return None, None
         # Use the first (best) match
         p = people[0]
