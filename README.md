@@ -7,8 +7,8 @@ A Python script pulls current home run totals from the MLB Stats API for every d
 In this project, I use:
 
 - **Python** — data fetching and HTML generation
-- **MLB Stats API** — free and public, no authentication required
-- **GitHub Actions** — runs automatically at 4am and 11am UTC daily
+- **MLB Stats API**
+- **GitHub Actions**
 - **GitHub Pages** — hosts the standings page
 
 ## Project Structure
