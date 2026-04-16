@@ -3,34 +3,34 @@ HR Pool Stats Fetcher
 Pulls home run data from the MLB Stats API and generates a standings webpage.
 Runs automatically via GitHub Actions on a schedule.
 """
- 
+
 import json
 import os
 import unicodedata
 import requests
 from datetime import datetime, timezone, timedelta
- 
+
 # ── Config ────────────────────────────────────────────────────────────────────
- 
+
 CONFIG_FILE  = "config.json"
 CACHE_FILE   = "player_id_cache.json"
 HISTORY_FILE = "history.json"
 OUTPUT_FILE  = "index.html"
 MLB_API      = "https://statsapi.mlb.com/api/v1"
- 
+
 TEAM_COLORS = [
     "#e8341c", "#4a9eff", "#2ecc71",
     "#f39c12", "#9b59b6", "#1abc9c", "#e91e63",
 ]
- 
+
 # ── Name helpers ──────────────────────────────────────────────────────────────
- 
+
 def normalize_name(name):
     """Strip accents and lowercase for fuzzy matching."""
     return unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode().lower()
- 
+
 # ── MLB API helpers ───────────────────────────────────────────────────────────
- 
+
 def search_player_id(name):
     try:
         url = f"{MLB_API}/people/search?names={requests.utils.quote(name)}&sportIds=1"
@@ -45,8 +45,8 @@ def search_player_id(name):
     except Exception as e:
         print(f"  ❌ Error searching for '{name}': {e}")
         return None, None
- 
- 
+
+
 def get_season_hr(player_id, season):
     try:
         url = f"{MLB_API}/people/{player_id}/stats?stats=season&season={season}&group=hitting"
@@ -59,55 +59,65 @@ def get_season_hr(player_id, season):
     except Exception as e:
         print(f"  ❌ Error fetching stats for player ID {player_id}: {e}")
         return 0
- 
- 
+
+
 def fetch_hr_leaders(season, limit=50):
-    """Fetch the top HR leaders league-wide for the season."""
+    """
+    Fetch top HR leaders using the stats endpoint.
+    Using group=hitting and gameType=R ensures we only get
+    regular-season batting home runs (no pitching, no spring training).
+    """
     try:
         url = (
-            f"{MLB_API}/stats/leaders"
-            f"?leaderCategories=homeRuns"
+            f"{MLB_API}/stats"
+            f"?stats=season"
+            f"&group=hitting"
+            f"&gameType=R"
             f"&season={season}"
-            f"&leaderGameTypes=R"
+            f"&sortStat=homeRuns"
+            f"&order=desc"
             f"&limit={limit}"
             f"&sportId=1"
+            f"&playerPool=ALL"
         )
         r = requests.get(url, timeout=10)
         r.raise_for_status()
         leaders = []
-        for cat in r.json().get("leagueLeaders", []):
-            for entry in cat.get("leaders", []):
+        for stat_group in r.json().get("stats", []):
+            for split in stat_group.get("splits", []):
+                hr = int(split["stat"].get("homeRuns", 0))
                 leaders.append({
-                    "name": entry["person"]["fullName"],
-                    "hr":   int(entry.get("value", 0)),
+                    "name": split["player"]["fullName"],
+                    "hr":   hr,
                 })
-        return leaders
+        leaders.sort(key=lambda x: x["hr"], reverse=True)
+        return leaders[:limit]
     except Exception as e:
         print(f"  ❌ Error fetching HR leaders: {e}")
         return []
- 
+
 # ── Cache helpers ─────────────────────────────────────────────────────────────
- 
+
 def load_cache():
     if os.path.exists(CACHE_FILE):
         with open(CACHE_FILE) as f:
             return json.load(f)
     return {}
- 
- 
+
+
 def save_cache(cache):
     with open(CACHE_FILE, "w") as f:
         json.dump(cache, f, indent=2)
- 
+
 # ── History helpers ───────────────────────────────────────────────────────────
- 
+
 def load_history():
     if os.path.exists(HISTORY_FILE):
         with open(HISTORY_FILE) as f:
             return json.load(f)
     return {"snapshots": []}
- 
- 
+
+
 def save_weekly_snapshot(history, results, today):
     """Save one snapshot per calendar week (keyed to Monday)."""
     week_start = (today - timedelta(days=today.weekday())).strftime("%Y-%m-%d")
@@ -128,9 +138,9 @@ def save_weekly_snapshot(history, results, today):
         json.dump(history, f, indent=2)
     print(f"  Saved weekly snapshot for week of {week_start}")
     return history
- 
+
 # ── Draft board helper ────────────────────────────────────────────────────────
- 
+
 def build_participant_picks(participants):
     """
     Snake-draft logic: returns {name: [{player, round, overall}, ...]}
@@ -140,7 +150,7 @@ def build_participant_picks(participants):
     num_rounds = len(participants[0]["players"])
     picks      = {p["name"]: [] for p in participants}
     overall    = 1
- 
+
     for round_num in range(num_rounds):
         order = list(range(n)) if round_num % 2 == 0 else list(range(n - 1, -1, -1))
         for team_idx in order:
@@ -151,27 +161,27 @@ def build_participant_picks(participants):
                 "overall": overall,
             })
             overall += 1
- 
+
     return picks
- 
+
 # ── Main ──────────────────────────────────────────────────────────────────────
- 
+
 def main():
     with open(CONFIG_FILE) as f:
         config = json.load(f)
- 
+
     pool_name    = config.get("pool_name", "Home Run Pool")
     season       = config.get("season", datetime.now().year)
     top_n        = config.get("top_n_count", 4)
     participants = config["participants"]
- 
+
     cache   = load_cache()
     results = []
- 
+
     for participant in participants:
         print(f"\nProcessing {participant['name']}...")
         player_stats = []
- 
+
         for raw_name in participant["players"]:
             if raw_name in cache:
                 player_id = cache[raw_name]["id"]
@@ -180,28 +190,28 @@ def main():
                 player_id, full_name = search_player_id(raw_name)
                 if player_id:
                     cache[raw_name] = {"id": player_id, "full_name": full_name}
- 
+
             if player_id:
                 hrs = get_season_hr(player_id, season)
                 print(f"  ✅ {full_name}: {hrs} HR")
                 player_stats.append({"name": full_name, "hr": hrs, "found": True})
             else:
                 player_stats.append({"name": raw_name, "hr": 0, "found": False})
- 
+
         player_stats.sort(key=lambda p: p["hr"], reverse=True)
         for i, p in enumerate(player_stats):
             p["counts"] = p["found"] and (i < top_n)
- 
+
         total = sum(p["hr"] for p in player_stats if p["counts"])
         results.append({"name": participant["name"], "players": player_stats, "total": total})
- 
+
     save_cache(cache)
     results.sort(key=lambda x: (-x["total"], x["name"]))
- 
+
     # League leaders
     print("\nFetching league HR leaders...")
     hr_leaders = fetch_hr_leaders(season, limit=50)
- 
+
     # Build normalised set of all drafted names
     all_drafted_norm = set()
     for p in participants:
@@ -209,37 +219,37 @@ def main():
             all_drafted_norm.add(normalize_name(raw))
             if raw in cache:
                 all_drafted_norm.add(normalize_name(cache[raw]["full_name"]))
- 
+
     # Weekly snapshot
     today   = datetime.now(timezone.utc).date()
     history = load_history()
     history = save_weekly_snapshot(history, results, today)
- 
+
     # Draft board
     participant_picks = build_participant_picks(participants)
- 
+
     edt     = timezone(timedelta(hours=-4))
     updated = datetime.now(edt).strftime("%-I:%M %p EDT on %B %-d, %Y")
- 
+
     generate_html(
         results, pool_name, season, top_n, updated,
         hr_leaders, all_drafted_norm,
         participants, participant_picks, history,
     )
     print(f"\n✅ Done! Standings updated at {updated}")
- 
+
 # ── HTML entry point ──────────────────────────────────────────────────────────
- 
+
 def generate_html(results, pool_name, season, top_n, updated,
                   hr_leaders, all_drafted_norm,
                   participants, participant_picks, history):
- 
+
     # Assign stable colors by original draft order
     color_map = {
         p["name"]: TEAM_COLORS[i % len(TEAM_COLORS)]
         for i, p in enumerate(participants)
     }
- 
+
     standings_html = _standings_section(results, top_n)
     draft_html     = _draft_section(participants, participant_picks, color_map)
     leaders_html   = _leaders_section(
@@ -247,7 +257,7 @@ def generate_html(results, pool_name, season, top_n, updated,
         len(participants), len(participants[0]["players"])
     )
     tracker_html   = _tracker_section(history, results, color_map)
- 
+
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -263,7 +273,7 @@ def generate_html(results, pool_name, season, top_n, updated,
       min-height: 100vh;
       padding: 24px 16px 48px;
     }}
- 
+
     /* ── Header ── */
     .header {{ text-align: center; margin-bottom: 24px; }}
     .header h1 {{
@@ -283,7 +293,7 @@ def generate_html(results, pool_name, season, top_n, updated,
       margin-top: 8px;
     }}
     .updated {{ font-size: 0.75rem; color: #4a6070; margin-top: 6px; }}
- 
+
     /* ── Tabs ── */
     .tab-nav {{
       display: flex;
@@ -309,7 +319,7 @@ def generate_html(results, pool_name, season, top_n, updated,
     .tab-btn.active {{ background: #e8341c; border-color: #e8341c; color: #fff; }}
     .tab-content {{ display: none; }}
     .tab-content.active {{ display: block; }}
- 
+
     /* ── Standings cards ── */
     .cards-grid {{
       display: grid;
@@ -349,7 +359,7 @@ def generate_html(results, pool_name, season, top_n, updated,
     .player-row.not-found {{ opacity: 0.35; }}
     .player-name {{ font-size: 0.85rem; font-weight: 600; color: #2a2a2a; flex: 1; }}
     .player-hr {{ font-size: 1.1rem; font-weight: 800; color: #1a1a1a; min-width: 28px; text-align: right; }}
- 
+
     /* ── Shared section wrapper ── */
     .section-card {{
       background: #1a2635;
@@ -367,7 +377,7 @@ def generate_html(results, pool_name, season, top_n, updated,
       background: #152030;
       border-bottom: 1px solid #243447;
     }}
- 
+
     /* ── Draft board ── */
     .draft-table {{ width: 100%; border-collapse: collapse; }}
     .draft-table th {{
@@ -398,7 +408,7 @@ def generate_html(results, pool_name, season, top_n, updated,
     .pick-player {{ font-size: 0.85rem; color: #c8d8e8; }}
     .pick-meta {{ font-size: 0.65rem; color: #3a5570; margin-top: 3px; }}
     .chart-subtitle {{ font-size: 0.8rem; font-weight: 600; color: #556a80; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }}
- 
+
     /* ── Leaders table ── */
     .leaders-summary {{
       display: flex;
@@ -462,7 +472,7 @@ def generate_html(results, pool_name, season, top_n, updated,
       background: #111e2b;
       border-bottom: 1px solid #243447;
     }}
- 
+
     /* ── Season tracker ── */
     .tracker-wrap {{ padding: 20px 18px; overflow-x: auto; }}
     .no-data {{ color: #3a5570; font-size: 0.875rem; text-align: center; padding: 48px 20px; }}
@@ -474,19 +484,19 @@ def generate_html(results, pool_name, season, top_n, updated,
     <div class="season-badge">{season} Season &nbsp;·&nbsp; Top {top_n} of 6 count</div>
     <div class="updated">Updated {updated}</div>
   </div>
- 
+
   <nav class="tab-nav">
     <button class="tab-btn active" onclick="showTab('standings', this)">Standings</button>
     <button class="tab-btn" onclick="showTab('draft', this)">Draft Board</button>
     <button class="tab-btn" onclick="showTab('leaders', this)">Who Should We Have Drafted?</button>
     <button class="tab-btn" onclick="showTab('tracker', this)">Season Tracker</button>
   </nav>
- 
+
   <div id="standings" class="tab-content active">{standings_html}</div>
   <div id="draft"     class="tab-content">{draft_html}</div>
   <div id="leaders"   class="tab-content">{leaders_html}</div>
   <div id="tracker"   class="tab-content">{tracker_html}</div>
- 
+
   <script>
     function showTab(id, btn) {{
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -497,12 +507,12 @@ def generate_html(results, pool_name, season, top_n, updated,
   </script>
 </body>
 </html>"""
- 
+
     with open(OUTPUT_FILE, "w") as f:
         f.write(html)
- 
+
 # ── Section builders ──────────────────────────────────────────────────────────
- 
+
 def _standings_section(results, top_n):
     cards = ""
     for rank, team in enumerate(results, 1):
@@ -531,18 +541,18 @@ def _standings_section(results, top_n):
             f'</div>'
         )
     return f'<div class="cards-grid">{cards}</div>'
- 
- 
+
+
 def _draft_section(participants, participant_picks, color_map):
     num_rounds = len(participants[0]["players"])
- 
+
     # Header: one column per team, with color bar on top
     header_cells = "<th>Round</th>" + "".join(
         f'<th style="border-top:3px solid {color_map.get(p["name"], "#fff")};color:#c8d8e8">' +
         p["name"] + "</th>"
         for p in participants
     )
- 
+
     # Rows: one row per round
     rows = ""
     for round_idx in range(num_rounds):
@@ -557,7 +567,7 @@ def _draft_section(participants, participant_picks, color_map):
                 f'</td>'
             )
         rows += f"<tr>{row}</tr>"
- 
+
     return (
         f'<div class="section-card">'
         f'<div class="section-title">'
@@ -570,24 +580,24 @@ def _draft_section(participants, participant_picks, color_map):
         f'</table>'
         f'</div></div>'
     )
- 
- 
+
+
 def _leaders_section(hr_leaders, all_drafted_norm, num_teams, picks_per_team):
     pool_size  = num_teams * picks_per_team   # 36 — the number to measure against
     hr_leaders = sorted(hr_leaders, key=lambda x: x["hr"], reverse=True)
- 
+
     if not hr_leaders:
         return (
             '<div class="section-card">'
             '<p class="no-data">Could not fetch league leaders.</p>'
             '</div>'
         )
- 
+
     top_pool      = hr_leaders[:pool_size]
     drafted_count = sum(1 for p in top_pool if normalize_name(p["name"]) in all_drafted_norm)
     missed        = pool_size - drafted_count
     pct           = (drafted_count / pool_size * 100) if pool_size else 0
- 
+
     summary = (
         f'<div class="leaders-summary">'
         f'<div class="summary-stat">'
@@ -604,7 +614,7 @@ def _leaders_section(hr_leaders, all_drafted_norm, num_teams, picks_per_team):
         f'</div>'
         f'</div>'
     )
- 
+
     row_list = []
     for rank, p in enumerate(hr_leaders, 1):
         is_drafted = normalize_name(p["name"]) in all_drafted_norm
@@ -626,7 +636,7 @@ def _leaders_section(hr_leaders, all_drafted_norm, num_teams, picks_per_team):
                 f'— Top {pool_size} counted above &nbsp;·&nbsp; remaining shown for reference —'
                 f'</td></tr>'
             )
- 
+
     return (
         f'<div class="section-card">'
         f'<div class="section-title">'
@@ -642,11 +652,11 @@ def _leaders_section(hr_leaders, all_drafted_norm, num_teams, picks_per_team):
         f'</table>'
         f'</div></div>'
     )
- 
- 
+
+
 def _tracker_section(history, results, color_map):
     snapshots = history.get("snapshots", [])
- 
+
     if not snapshots:
         return (
             '<div class="section-card">'
@@ -655,14 +665,14 @@ def _tracker_section(history, results, color_map):
             'No data yet — the tracker will populate after the first weekly snapshot. Check back next week!'
             '</p></div>'
         )
- 
+
     participants = [r["name"] for r in results]
     n            = len(participants)
     n_weeks      = len(snapshots)
- 
+
     rank_svg = _rank_chart(snapshots, participants, n, n_weeks, color_map)
     hr_svg   = _hr_chart(snapshots, participants, n, n_weeks, color_map)
- 
+
     return (
         '<div class="section-card">'
         '<div class="section-title">Season Tracker</div>'
@@ -673,21 +683,21 @@ def _tracker_section(history, results, color_map):
         + hr_svg +
         '</div></div>'
     )
- 
- 
+
+
 def _rank_chart(snapshots, participants, n, n_weeks, color_map):
     ml, mr, mt, mb = 44, 160, 20, 44
     inner_w = max(360, n_weeks * 90)
     inner_h = 220
     svg_w   = inner_w + ml + mr
     svg_h   = inner_h + mt + mb
- 
+
     def x_pos(i):
         return inner_w / 2 if n_weeks == 1 else i * inner_w / (n_weeks - 1)
- 
+
     def y_pos(rank):
         return 0.0 if n == 1 else (rank - 1) * inner_h / (n - 1)
- 
+
     # Grid lines
     grid = ""
     for rank in range(1, n + 1):
@@ -699,7 +709,7 @@ def _rank_chart(snapshots, participants, n, n_weeks, color_map):
             f'<text x="-8" y="{y + 4:.1f}" text-anchor="end" '
             f'fill="#3a5570" font-size="11">{ordinal}</text>'
         )
- 
+
     # X axis labels
     x_labels = ""
     for i, snap in enumerate(snapshots):
@@ -713,7 +723,7 @@ def _rank_chart(snapshots, participants, n, n_weeks, color_map):
             f'<text x="{x:.1f}" y="{inner_h + 28:.1f}" '
             f'text-anchor="middle" fill="#3a5570" font-size="10">{label}</text>'
         )
- 
+
     # Lines, dots, and endpoint labels
     series = ""
     for pi, name in enumerate(participants):
@@ -724,10 +734,10 @@ def _rank_chart(snapshots, participants, n, n_weeks, color_map):
                 rank  = snap["standings"][name]["rank"]
                 total = snap["standings"][name]["total"]
                 points.append((x_pos(i), y_pos(rank), rank, total))
- 
+
         if not points:
             continue
- 
+
         if len(points) > 1:
             path_d = " ".join(
                 f"{{'M' if j == 0 else 'L'}}{x:.1f},{y:.1f}"
@@ -737,7 +747,7 @@ def _rank_chart(snapshots, participants, n, n_weeks, color_map):
                 f'<path d="{path_d}" stroke="{color}" stroke-width="2.5" '
                 f'fill="none" stroke-linejoin="round" stroke-linecap="round"/>'
             )
- 
+
         for x, y, rank, total in points:
             ordinal = {1: "1st", 2: "2nd", 3: "3rd"}.get(rank, f"{rank}th")
             series += (
@@ -746,7 +756,7 @@ def _rank_chart(snapshots, participants, n, n_weeks, color_map):
                 f'<title>{name}: {ordinal} ({total} HR)</title>'
                 f'</circle>'
             )
- 
+
         # Label at most recent point
         if points:
             lx, ly, lrank, ltotal = points[-1]
@@ -756,7 +766,7 @@ def _rank_chart(snapshots, participants, n, n_weeks, color_map):
                 f'fill="{color}" font-size="10" font-weight="600">'
                 f'{name} ({ltotal} HR)</text>'
             )
- 
+
     svg = (
         f'<svg viewBox="0 0 {svg_w} {svg_h}" xmlns="http://www.w3.org/2000/svg" '
         f'style="width:100%;max-width:{svg_w}px;display:block;">'
@@ -765,15 +775,15 @@ def _rank_chart(snapshots, participants, n, n_weeks, color_map):
         f'</g></svg>'
     )
     return svg
- 
- 
+
+
 def _hr_chart(snapshots, participants, n, n_weeks, color_map):
     ml, mr, mt, mb = 50, 160, 20, 44
     inner_w = max(360, n_weeks * 90)
     inner_h = 220
     svg_w   = inner_w + ml + mr
     svg_h   = inner_h + mt + mb
- 
+
     # Determine Y max
     all_totals = [
         data["total"]
@@ -782,14 +792,14 @@ def _hr_chart(snapshots, participants, n, n_weeks, color_map):
     ]
     raw_max = max(all_totals) if all_totals else 10
     y_max   = max(10, ((raw_max // 10) + 1) * 10)
- 
+
     def x_pos(i):
         return inner_w / 2 if n_weeks == 1 else i * inner_w / (n_weeks - 1)
- 
+
     def y_pos(total):
         # 0 at bottom (inner_h), y_max at top (0)
         return inner_h - (total / y_max) * inner_h
- 
+
     # Grid lines at 0, mid, max
     grid = ""
     for hr_val in [0, y_max // 2, y_max]:
@@ -800,7 +810,7 @@ def _hr_chart(snapshots, participants, n, n_weeks, color_map):
             f'<text x="-8" y="{y + 4:.1f}" text-anchor="end" '
             f'fill="#3a5570" font-size="11">{hr_val}</text>'
         )
- 
+
     # X axis labels
     x_labels = ""
     for i, snap in enumerate(snapshots):
@@ -814,7 +824,7 @@ def _hr_chart(snapshots, participants, n, n_weeks, color_map):
             f'<text x="{x:.1f}" y="{inner_h + 28:.1f}" '
             f'text-anchor="middle" fill="#3a5570" font-size="10">{label}</text>'
         )
- 
+
     # Lines, dots, and endpoint labels
     series = ""
     for pi, name in enumerate(participants):
@@ -824,10 +834,10 @@ def _hr_chart(snapshots, participants, n, n_weeks, color_map):
             if name in snap["standings"]:
                 total = snap["standings"][name]["total"]
                 points.append((x_pos(i), y_pos(total), total))
- 
+
         if not points:
             continue
- 
+
         if len(points) > 1:
             path_d = " ".join(
                 f"{{'M' if j == 0 else 'L'}}{x:.1f},{y:.1f}"
@@ -837,7 +847,7 @@ def _hr_chart(snapshots, participants, n, n_weeks, color_map):
                 f'<path d="{path_d}" stroke="{color}" stroke-width="2.5" '
                 f'fill="none" stroke-linejoin="round" stroke-linecap="round"/>'
             )
- 
+
         for x, y, total in points:
             series += (
                 f'<circle cx="{x:.1f}" cy="{y:.1f}" r="5" '
@@ -845,7 +855,7 @@ def _hr_chart(snapshots, participants, n, n_weeks, color_map):
                 f'<title>{name}: {total} HR</title>'
                 f'</circle>'
             )
- 
+
         # Label at most recent point
         if points:
             lx, ly, ltotal = points[-1]
@@ -854,7 +864,7 @@ def _hr_chart(snapshots, participants, n, n_weeks, color_map):
                 f'fill="{color}" font-size="10" font-weight="600">'
                 f'{name} ({ltotal} HR)</text>'
             )
- 
+
     svg = (
         f'<svg viewBox="0 0 {svg_w} {svg_h}" xmlns="http://www.w3.org/2000/svg" '
         f'style="width:100%;max-width:{svg_w}px;display:block;">'
@@ -863,9 +873,8 @@ def _hr_chart(snapshots, participants, n, n_weeks, color_map):
         f'</g></svg>'
     )
     return svg
- 
- 
- 
+
+
+
 if __name__ == "__main__":
     main()
- 
