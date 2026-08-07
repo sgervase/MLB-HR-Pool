@@ -769,7 +769,7 @@ def _rank_chart(snapshots, participants, n, n_weeks, color_map):
 
     svg = (
         f'<svg viewBox="0 0 {svg_w} {svg_h}" xmlns="http://www.w3.org/2000/svg" '
-        f'style="width:100%;max-width:{svg_w}px;display:block;">'
+        f'style="width:100%;min-width:{svg_w}px;max-width:1100px;display:block;">'
         f'<g transform="translate({ml},{mt})">'
         f'{grid}{x_labels}{series}'
         f'</g></svg>'
@@ -867,7 +867,7 @@ def _hr_chart(snapshots, participants, n, n_weeks, color_map):
 
     svg = (
         f'<svg viewBox="0 0 {svg_w} {svg_h}" xmlns="http://www.w3.org/2000/svg" '
-        f'style="width:100%;max-width:{svg_w}px;display:block;">'
+        f'style="width:100%;min-width:{svg_w}px;max-width:1100px;display:block;">'
         f'<g transform="translate({ml},{mt})">'
         f'{grid}{x_labels}{series}'
         f'</g></svg>'
