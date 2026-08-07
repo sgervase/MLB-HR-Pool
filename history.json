@@ -1,0 +1,34 @@
+{
+  "snapshots": [
+    {
+      "week_start": "2026-08-03",
+      "date": "2026-08-07",
+      "standings": {
+        "Dramer :)": {
+          "total": 110,
+          "rank": 1
+        },
+        "Crunchypete": {
+          "total": 99,
+          "rank": 2
+        },
+        "H.S.N.B.C": {
+          "total": 97,
+          "rank": 3
+        },
+        "Femboys": {
+          "total": 81,
+          "rank": 4
+        },
+        "CRM14": {
+          "total": 72,
+          "rank": 5
+        },
+        "McDonut": {
+          "total": 58,
+          "rank": 6
+        }
+      }
+    }
+  ]
+}
