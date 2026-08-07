@@ -740,7 +740,7 @@ def _rank_chart(snapshots, participants, n, n_weeks, color_map):
 
         if len(points) > 1:
             path_d = " ".join(
-                f"{{'M' if j == 0 else 'L'}}{x:.1f},{y:.1f}"
+                f"{'M' if j == 0 else 'L'}{x:.1f},{y:.1f}"
                 for j, (x, y, _, _) in enumerate(points)
             )
             series += (
@@ -840,7 +840,7 @@ def _hr_chart(snapshots, participants, n, n_weeks, color_map):
 
         if len(points) > 1:
             path_d = " ".join(
-                f"{{'M' if j == 0 else 'L'}}{x:.1f},{y:.1f}"
+                f"{'M' if j == 0 else 'L'}{x:.1f},{y:.1f}"
                 for j, (x, y, _) in enumerate(points)
             )
             series += (
