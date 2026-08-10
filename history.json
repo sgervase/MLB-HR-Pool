@@ -599,6 +599,36 @@
           "rank": 6
         }
       }
+    },
+    {
+      "week_start": "2026-08-10",
+      "date": "2026-08-10",
+      "standings": {
+        "Dramer :)": {
+          "total": 114,
+          "rank": 1
+        },
+        "H.S.N.B.C": {
+          "total": 102,
+          "rank": 2
+        },
+        "Crunchypete": {
+          "total": 101,
+          "rank": 3
+        },
+        "Femboys": {
+          "total": 83,
+          "rank": 4
+        },
+        "CRM14": {
+          "total": 73,
+          "rank": 5
+        },
+        "McDonut": {
+          "total": 61,
+          "rank": 6
+        }
+      }
     }
   ]
 }
